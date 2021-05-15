@@ -17,6 +17,7 @@
 	#include <stm32f4xx_exti.h>
 	#include <stm32f4xx_usart.h>
 	#include <stm32f4xx_spi.h>
+	#include "winbond_spi.h"
 	#define LEDPORT (GPIOA)
 	#define LEDPIN (GPIO_Pin_1)
 	#define USART1_RXPIN (GPIO_Pin_10)
@@ -46,6 +47,7 @@ uint8_t Serial_PutString(USART_TypeDef *USARTx, char *p_string);
 void USART_puts(USART_TypeDef *USARTx, volatile char *str);
 void Peripheral_Init(void);
 void user_uart_println(char *string);
+void SPI_Peripheral_Init(void);
 
 cmd_t cmd_tbl[] = {
     {
@@ -211,4 +213,17 @@ static void cli_print(cli_t *cli, const char *msg)
 
     strcpy(buf, msg);
     cli->println(buf);
+}
+
+void SPI_Peripheral_Init(void)
+{
+	SPI_InitTypeDef spi;
+	spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	spi.SPI_Mode = SPI_Mode_Master;
+	spi.SPI_DataSize = SPI_DataSize_8b;
+	spi.SPI_CPOL = SPI_CPOL_Low;
+	spi.SPI_CPHA = SPI_CPHA_1Edge;
+	spi.SPI_NSS = SPI_NSS_Soft;
+	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
+	spi.SPI_FirstBit = SPI_FirstBit_MSB;
 }

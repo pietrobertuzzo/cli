@@ -4,6 +4,7 @@
 // Define to prevent recursive inclusion
 #ifndef _WINBOND_SPI_H_
 #define _WINBOND_SPI_H_
+#endif
 
 // Includes
 #include "stm32f4xx.h"
