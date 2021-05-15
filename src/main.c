@@ -16,7 +16,7 @@
 	#include <misc.h>
 	#include <stm32f4xx_exti.h>
 	#include <stm32f4xx_usart.h>
-	#include "cli.h"
+	#include <stm32f4xx_spi.h>
 	#define LEDPORT (GPIOA)
 	#define LEDPIN (GPIO_Pin_1)
 	#define USART1_RXPIN (GPIO_Pin_10)
@@ -27,6 +27,8 @@
 	#define ENABLE_GPIO_CLOCK (RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE))
 	#define ENABLE_USART1_CLOCK (RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE))
 #endif
+
+#include "cli.h"
 
 #define MAX_STRLEN 10
 
@@ -166,7 +168,7 @@ void help_func(int argc, char **argv)
 
 void echo_func(int argc, char **argv)
 {
-	uint8_t cnt = 0;
+	uint8_t cnt;
 	for(cnt = 0;cnt < argc;cnt++){
 		**argv++;
     	cli_print(&cli,*argv);
@@ -205,7 +207,6 @@ void USART1_IRQHandler(void)
 
 static void cli_print(cli_t *cli, const char *msg)
 {
-    /* Temp buffer to store text in ram first */
     char buf[50];
 
     strcpy(buf, msg);
