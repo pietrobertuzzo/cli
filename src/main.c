@@ -38,6 +38,7 @@ char cli_prompt[];
 static void cli_print(cli_t *cli, const char *msg);
 static void echo_func(int argc, char **argv);
 static void help_func(int argc, char **argv);
+static void nop_func(int argc, char **argv);
 void simple_delay(uint32_t us);
 uint8_t Serial_GetByte(USART_TypeDef *USARTx);
 void Serial_PutByte(USART_TypeDef *USARTx, uint8_t byte);
@@ -47,6 +48,7 @@ void USART_puts(USART_TypeDef *USARTx, volatile char *str);
 void Peripheral_Init(void);
 void user_uart_println(char *string);
 
+
 cmd_t cmd_tbl[] = {
     {
         .cmd = "help",
@@ -55,7 +57,11 @@ cmd_t cmd_tbl[] = {
     {
         .cmd = "echo",
         .func = echo_func
-    }
+    },
+	{
+		.cmd = "nop",
+		.func = nop_func
+	}
 };
 
 
@@ -163,7 +169,12 @@ void user_uart_println(char *string)
 void help_func(int argc, char **argv)
 {
     cli_print(&cli, "Functions available:\r\n");
-	cli_print(&cli, "help, echo.\r\n");
+	uint8_t cnt;
+	for(cnt = 0;cnt < sizeof(cmd_tbl); cnt++){
+		cli_print(&cli, cmd_tbl[cnt].cmd);
+		cli_print(&cli, ", ");
+	}
+	cli_print(&cli, "\r\n");
 }
 
 void echo_func(int argc, char **argv)
@@ -176,6 +187,11 @@ void echo_func(int argc, char **argv)
 	}
 	cli_print(&cli,"\r\n");
 }
+
+static void nop_func(int argc, char **argv){
+	asm volatile ("nop");
+}
+
 void USART1_IRQHandler(void)
 {
 	/*
