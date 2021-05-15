@@ -67,6 +67,7 @@ int main(void)
 {
 	
 	Peripheral_Init();
+	SPI_Peripheral_Init();
 	cli.println = user_uart_println;
 	cli.cmd_tbl = cmd_tbl;
 	cli.cmd_cnt = sizeof(cmd_tbl)/sizeof(cmd_t);
@@ -78,6 +79,9 @@ int main(void)
 
 	/* main program loop */
 	for (;;) {
+
+		SPI_I2S_SendData(SPI1, 0x49);
+
 		if(CMD_FLAG){
 			cli_process(&cli);
 			CMD_FLAG = 0;
@@ -217,6 +221,22 @@ static void cli_print(cli_t *cli, const char *msg)
 
 void SPI_Peripheral_Init(void)
 {
+	// Enable peripheral clock for SPI1 and GPIOB 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+
+	GPIO_PinAFConfig(GPIOB, WINBOND_CLK_SOURCE, GPIO_AF_SPI1);
+	GPIO_PinAFConfig(GPIOB, WINBOND_DI_SOURCE, GPIO_AF_SPI1);
+	GPIO_PinAFConfig(GPIOB, WINBOND_DO_SOURCE, GPIO_AF_SPI1);
+
+	GPIO_InitTypeDef gpio_spi;
+	gpio_spi.GPIO_Mode = GPIO_Mode_AF;
+	gpio_spi.GPIO_OType = GPIO_OType_PP;
+	gpio_spi.GPIO_Pin = WINBOND_CLK | WINBOND_DI | WINBOND_DO;
+	gpio_spi.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	gpio_spi.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &gpio_spi);
+
 	SPI_InitTypeDef spi;
 	spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	spi.SPI_Mode = SPI_Mode_Master;
@@ -224,6 +244,13 @@ void SPI_Peripheral_Init(void)
 	spi.SPI_CPOL = SPI_CPOL_Low;
 	spi.SPI_CPHA = SPI_CPHA_1Edge;
 	spi.SPI_NSS = SPI_NSS_Soft;
-	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
+	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_128;
 	spi.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_Init(SPI1, &spi);
+
+	SPI_ITConfig(SPI1, SPI_I2S_IT_RXNE, ENABLE);
+
+	SPI_Cmd(SPI1, ENABLE);
+
+
 }
