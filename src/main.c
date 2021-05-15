@@ -170,7 +170,7 @@ void help_func(int argc, char **argv)
 {
     cli_print(&cli, "Functions available:\r\n");
 	uint8_t cnt;
-	for(cnt = 0;cnt < sizeof(cmd_tbl); cnt++){
+	for(cnt = 0;cnt < sizeof(cmd_tbl)/sizeof(cmd_t); cnt++){
 		cli_print(&cli, cmd_tbl[cnt].cmd);
 		cli_print(&cli, ", ");
 	}
