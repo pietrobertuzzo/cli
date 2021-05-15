@@ -9,5 +9,5 @@
 *   @brief Interface for Winbond SPI flash memory.
 */
 
-#include "winbond_spi.c"
+#include "winbond_spi.h"
 
