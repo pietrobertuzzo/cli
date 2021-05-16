@@ -57,11 +57,13 @@ volatile char rxBuffer[MAX_STRLEN + 2];
 volatile uint8_t CMD_FLAG = 0;
 char cli_prompt[];
 
+void devid_func(int argc, char **argv);
+void mnfrid_func(int argc, char **argv);
 static void cli_print(cli_t *cli, const char *msg);
 static void echo_func(int argc, char **argv);
 static void help_func(int argc, char **argv);
-static void spi_func(int argc, char **argv);
-static uint8_t *spi_func_for(int argc, char **argv);
+//static void spi_func(int argc, char **argv);
+//static uint8_t *spi_func_for(int argc, char **argv);
 void simple_delay(uint32_t us);
 uint8_t Serial_GetByte(USART_TypeDef *USARTx);
 void Serial_PutByte(USART_TypeDef *USARTx, uint8_t byte);
@@ -81,9 +83,19 @@ cmd_t cmd_tbl[] = {
         .cmd = "echo",
         .func = echo_func
     },
+	/*
 	{
 		.cmd = "spi",
 		.func = spi_func
+	},
+	*/
+	{
+		.cmd = "mnfrid",
+		.func = mnfrid_func
+	},
+	{
+		.cmd = "devid",
+		.func = devid_func
 	}
 };
 
@@ -107,6 +119,8 @@ int main(void)
 	/* main program loop */
 	for (;;) {
 
+		Winbond_Read_Dev_ID();
+		//Winbond_Read_Mnfr_ID();
 		if(CMD_FLAG){
 			cli_process(&cli);
 			CMD_FLAG = 0;
@@ -208,6 +222,7 @@ void echo_func(int argc, char **argv)
 	cli_print(&cli,"\r\n");
 }
 
+/*
 void spi_func(int argc, char **argv)
 {
 	uint8_t cnt, *data;
@@ -231,6 +246,19 @@ uint8_t *spi_func_for(int argc, char **argv)
 		data[cnt] = *argv[cnt];
 	}
 	return *data;
+}
+*/
+
+void mnfrid_func(int argc, char **argv)
+{
+	cli_print(&cli, asciihex[Winbond_Read_Mnfr_ID()]);
+	cli_print(&cli,"\r\n");
+}
+
+void devid_func(int argc, char **argv)
+{
+	cli_print(&cli, asciihex[Winbond_Read_Dev_ID()]);
+	cli_print(&cli,"\r\n");
 }
 
 void USART1_IRQHandler(void)
@@ -295,7 +323,7 @@ void SPI_Peripheral_Init(void)
 	spi.SPI_CPOL = SPI_CPOL_Low;
 	spi.SPI_CPHA = SPI_CPHA_1Edge;
 	spi.SPI_NSS = SPI_NSS_Soft;
-	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_128;
+	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;
 	spi.SPI_FirstBit = SPI_FirstBit_MSB;
 	SPI_Init(SPI1, &spi);
 
@@ -303,5 +331,12 @@ void SPI_Peripheral_Init(void)
 
 	SPI_Cmd(SPI1, ENABLE);
 
-
+	GPIO_InitTypeDef gpio_cs_winbond;
+	gpio_cs_winbond.GPIO_Pin = WINBOND_CS;
+	gpio_cs_winbond.GPIO_Mode = GPIO_Mode_OUT;
+	gpio_cs_winbond.GPIO_OType = GPIO_OType_PP;
+	gpio_cs_winbond.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	gpio_cs_winbond.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &gpio_cs_winbond);
 }
+
