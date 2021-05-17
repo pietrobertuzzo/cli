@@ -39,6 +39,8 @@ static void cli_print(cli_t *cli, const char *msg);
 static void echo_func(int argc, char **argv);
 static void help_func(int argc, char **argv);
 static void nop_func(int argc, char **argv);
+static void led_func(int argc, char **argv);
+
 void simple_delay(uint32_t us);
 uint8_t Serial_GetByte(USART_TypeDef *USARTx);
 void Serial_PutByte(USART_TypeDef *USARTx, uint8_t byte);
@@ -61,6 +63,10 @@ cmd_t cmd_tbl[] = {
 	{
 		.cmd = "nop",
 		.func = nop_func
+	},
+	{
+		.cmd = "led",
+		.func = led_func
 	}
 };
 
@@ -158,6 +164,15 @@ void Peripheral_Init(void)
 	NVIC_Init(&NVIC_InitStruct);
 
 	USART_Cmd(USART1, ENABLE);
+
+	GPIO_InitTypeDef gpio_boardled;
+	gpio_boardled.GPIO_Mode = GPIO_Mode_OUT;
+	gpio_boardled.GPIO_OType = GPIO_OType_PP;
+	gpio_boardled.GPIO_Pin = LEDPIN;
+	gpio_boardled.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	gpio_boardled.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(LEDPORT, &gpio_boardled);
+	GPIO_ResetBits(LEDPORT, LEDPIN);
 }
 
 void user_uart_println(char *string)
@@ -188,8 +203,31 @@ void echo_func(int argc, char **argv)
 	cli_print(&cli,"\r\n");
 }
 
-static void nop_func(int argc, char **argv){
+void nop_func(int argc, char **argv)
+{
 	asm volatile ("nop");
+}
+
+void led_func(int argc, char **argv)
+{
+	/*
+	cli_print(&cli, **argv + 2);
+	if(argc == 2){
+		if(*argv[1] == "0"){
+			GPIO_ResetBits(LEDPORT,LEDPIN);
+		}
+		if(*argv[1] == "1"){
+			GPIO_SetBits(LEDPORT,LEDPIN);
+		}
+		else{
+			cli_print(&cli, "Invalid parameter: Must be either 0 or 1\r\n");
+		}
+	}
+	else{
+		cli_print(&cli, "Invalid number of arguments\r\n");
+	}
+	*/
+	GPIO_ToggleBits(LEDPORT,LEDPIN);
 }
 
 void USART1_IRQHandler(void)
